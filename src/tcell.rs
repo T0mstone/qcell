@@ -444,6 +444,32 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
+    fn tcell_nested() {
+        struct Marker;
+        type ACellOwner = TCellOwner<Marker>;
+        let mut owner = ACellOwner::new();
+        let nested = owner.cell(Box::new(owner.cell(35u32)));
+        let (inner, chain) = owner.rw_chain(&nested);
+        (*chain.rw(inner)) = 42;
+        let inner = owner.ro(&nested);
+        let val = owner.ro(inner);
+        assert_eq!(*val, 42);
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    #[should_panic]
+    fn tcell_same_chain() {
+        struct Marker;
+        type ACellOwner = TCellOwner<Marker>;
+        let mut owner = ACellOwner::new();
+        let c = owner.cell(35u32);
+        let (_rw1, chain) = owner.rw_chain(&c);
+        let _rw2 = chain.rw(&c);
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
     fn tcell_wait_for_new_in_100_threads() {
         use rand::Rng;
         use std::sync::Arc;
