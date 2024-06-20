@@ -368,13 +368,13 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(feature = "alloc")]
+mod chain;
 mod lcell;
 mod qcell;
 mod tcell;
 #[cfg(feature = "std")]
 mod tlcell;
-#[cfg(feature = "alloc")]
-mod chain;
 
 pub mod doctest_lcell;
 #[cfg(feature = "generativity")]
@@ -411,6 +411,7 @@ pub extern crate generativity;
 // regarding "function pointers cannot appear in constant functions"
 struct Invariant<T>(fn(T) -> T);
 
+pub use crate::chain::RwChain;
 pub use crate::lcell::LCell;
 pub use crate::lcell::LCellOwner;
 pub use crate::qcell::QCell;
@@ -419,7 +420,6 @@ pub use crate::qcell::QCellOwnerPinned;
 pub use crate::qcell::QCellOwnerSeq;
 pub use crate::tcell::TCell;
 pub use crate::tcell::TCellOwner;
-pub use crate::chain::RwChain;
 
 #[cfg(feature = "alloc")]
 pub use crate::qcell::QCellOwner;
