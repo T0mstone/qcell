@@ -10,6 +10,9 @@ use std::{
     sync::{Condvar, Mutex},
 };
 
+#[cfg(feature = "alloc")]
+use crate::chain::RwChain;
+
 use super::Invariant;
 
 #[cfg(all(feature = "std", not(feature = "exclusion-set")))]
@@ -234,6 +237,32 @@ impl<Q: 'static> TCellOwner<Q> {
                 &mut *tc3.value.get(),
             )
         }
+    }
+
+    #[cfg(feature = "alloc")]
+    pub fn rw_chain<'a, T: ?Sized>(
+        &'a mut self,
+        tc: &'a TCell<Q, T>,
+    ) -> (&'a mut T, RwChain<'a, Self>) {
+        let mut chain = RwChain::new(self);
+        chain.push_addr(tc);
+        (unsafe { &mut *tc.value.get() }, chain)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<'a, Q: 'static> RwChain<'a, TCellOwner<Q>> {
+    pub fn rw_chain<T: ?Sized>(mut self, tc: &TCell<Q, T>) -> (&mut T, Self) {
+        if self.contains_addr(tc) {
+            panic!("Illegal to borrow same TCell twice with rw_chain()");
+        }
+        self.push_addr(tc);
+
+        (unsafe { &mut *tc.value.get() }, self)
+    }
+
+    pub fn rw<T: ?Sized>(self, tc: &TCell<Q, T>) -> &mut T {
+        self.rw_chain(tc).0
     }
 }
 

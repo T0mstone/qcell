@@ -373,6 +373,8 @@ mod qcell;
 mod tcell;
 #[cfg(feature = "std")]
 mod tlcell;
+#[cfg(feature = "alloc")]
+mod chain;
 
 pub mod doctest_lcell;
 #[cfg(feature = "generativity")]
@@ -417,6 +419,7 @@ pub use crate::qcell::QCellOwnerPinned;
 pub use crate::qcell::QCellOwnerSeq;
 pub use crate::tcell::TCell;
 pub use crate::tcell::TCellOwner;
+pub use crate::chain::RwChain;
 
 #[cfg(feature = "alloc")]
 pub use crate::qcell::QCellOwner;
