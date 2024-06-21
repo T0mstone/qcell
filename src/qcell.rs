@@ -353,18 +353,15 @@ impl QCellOwner {
 
 #[cfg(feature = "alloc")]
 impl<'a> RwChain<'a, QCellOwner> {
-    pub fn rw_chain<T: ?Sized>(mut self, qc: &QCell<T>) -> (&mut T, Self) {
+    #[allow(clippy::mut_from_ref)]
+    pub fn rw<T: ?Sized>(&mut self, qc: &'a QCell<T>) -> &'a mut T {
         owner_check!(self.owner, qc);
         if self.contains_addr(qc) {
             not_distinct_panic();
         }
         self.push_addr(qc);
 
-        (unsafe { &mut *qc.value.get() }, self)
-    }
-
-    pub fn rw<T: ?Sized>(self, tc: &QCell<T>) -> &mut T {
-        self.rw_chain(tc).0
+        unsafe { &mut *qc.value.get() }
     }
 }
 

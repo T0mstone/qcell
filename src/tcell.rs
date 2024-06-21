@@ -252,17 +252,14 @@ impl<Q: 'static> TCellOwner<Q> {
 
 #[cfg(feature = "alloc")]
 impl<'a, Q: 'static> RwChain<'a, TCellOwner<Q>> {
-    pub fn rw_chain<T: ?Sized>(mut self, tc: &TCell<Q, T>) -> (&mut T, Self) {
+    #[allow(clippy::mut_from_ref)]
+    pub fn rw<T: ?Sized>(&mut self, tc: &'a TCell<Q, T>) -> &'a mut T {
         if self.contains_addr(tc) {
             panic!("Illegal to borrow same TCell twice with rw_chain()");
         }
         self.push_addr(tc);
 
-        (unsafe { &mut *tc.value.get() }, self)
-    }
-
-    pub fn rw<T: ?Sized>(self, tc: &TCell<Q, T>) -> &mut T {
-        self.rw_chain(tc).0
+        unsafe { &mut *tc.value.get() }
     }
 }
 
@@ -449,7 +446,7 @@ mod tests {
         type ACellOwner = TCellOwner<Marker>;
         let mut owner = ACellOwner::new();
         let nested = owner.cell(Box::new(owner.cell(35u32)));
-        let (inner, chain) = owner.rw_chain(&nested);
+        let (inner, mut chain) = owner.rw_chain(&nested);
         (*chain.rw(inner)) = 42;
         let inner = owner.ro(&nested);
         let val = owner.ro(inner);
@@ -464,7 +461,7 @@ mod tests {
         type ACellOwner = TCellOwner<Marker>;
         let mut owner = ACellOwner::new();
         let c = owner.cell(35u32);
-        let (_rw1, chain) = owner.rw_chain(&c);
+        let (_rw1, mut chain) = owner.rw_chain(&c);
         let _rw2 = chain.rw(&c);
     }
 

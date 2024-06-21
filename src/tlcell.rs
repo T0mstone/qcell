@@ -134,17 +134,14 @@ impl<Q: 'static> TLCellOwner<Q> {
 
 #[cfg(feature = "alloc")]
 impl<'a, Q: 'static> RwChain<'a, TLCellOwner<Q>> {
-    pub fn rw_chain<T: ?Sized>(mut self, tc: &TLCell<Q, T>) -> (&mut T, Self) {
+    #[allow(clippy::mut_from_ref)]
+    pub fn rw<T: ?Sized>(&mut self, tc: &'a TLCell<Q, T>) -> &'a mut T {
         if self.contains_addr(tc) {
             panic!("Illegal to borrow same TLCell twice with rw_chain()");
         }
         self.push_addr(tc);
 
-        (unsafe { &mut *tc.value.get() }, self)
-    }
-
-    pub fn rw<T: ?Sized>(self, tc: &TLCell<Q, T>) -> &mut T {
-        self.rw_chain(tc).0
+        unsafe { &mut *tc.value.get() }
     }
 }
 

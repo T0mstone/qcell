@@ -161,17 +161,14 @@ impl<'id> LCellOwner<'id> {
 
 #[cfg(feature = "alloc")]
 impl<'a, 'id> RwChain<'a, LCellOwner<'id>> {
-    pub fn rw_chain<'b, T: ?Sized>(mut self, lc: &'b LCell<'id, T>) -> (&'b mut T, Self) {
+    #[allow(clippy::mut_from_ref)]
+    pub fn rw<T: ?Sized>(&mut self, lc: &'a LCell<'id, T>) -> &'a mut T {
         if self.contains_addr(lc) {
             panic!("Illegal to borrow same LCell twice with rw_chain()");
         }
         self.push_addr(lc);
 
-        (unsafe { &mut *lc.value.get() }, self)
-    }
-
-    pub fn rw<'b, T: ?Sized>(self, lc: &'b LCell<'id, T>) -> &'b mut T {
-        self.rw_chain(lc).0
+        unsafe { &mut *lc.value.get() }
     }
 }
 
